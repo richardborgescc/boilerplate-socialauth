@@ -6,6 +6,7 @@ const fccTesting  = require('./freeCodeCamp/fcctesting.js');
 const session     = require('express-session');
 const mongo       = require('mongodb').MongoClient;
 const passport    = require('passport');
+const GitHubStrategy = require('passport-github').Strategy;
 
 const app = express();
 
@@ -17,7 +18,10 @@ app.use(bodyParser.urlencoded({ extended: true }));
 
 app.set('view engine', 'pug')
 
-mongo.connect(process.env.DATABASE, (err, db) => {
+
+process.env.DATABASE = "mongodb+srv://admin:rbcc@cluster0-go8yi.mongodb.net/test?retryWrites=true";
+mongo.connect(process.env.DATABASE, {useNewUrlParser: true}, (err, client) => {
+    let db = client.db('myproject');
     if(err) {
         console.log('Database error: ' + err);
     } else {
@@ -55,17 +59,27 @@ mongo.connect(process.env.DATABASE, (err, db) => {
         /*
         *  ADD YOUR CODE BELOW
         */
+        passport.use(new GitHubStrategy({
+            clientID: process.env.GITHUB_CLIENT_ID,
+            clientSecret: process.env.GITHUB_CLIENT_SECRET,
+            callbackURL: "https://richardborgescc-boilerplate-socialauth.glitch.me/auth/github/callback"
+          },
+          function(accessToken, refreshToken, profile, done) {
+            console.log('User '+ profile.username +' attempted to log in.');
+            return done(null, profile);
+          }
+        ));
       
+        app.route('/auth/github')
+          .get(passport.authenticate('github'));
       
-      
-      
-      
-      
-      
+        app.route('/auth/github/callback')
+          .get(passport.authenticate('github', { failureRedirect: '/' }), (req,res) => {
+              res.redirect('/profile');
+          });
         /*
         *  ADD YOUR CODE ABOVE
         */
-      
       
         app.route('/')
           .get((req, res) => {
