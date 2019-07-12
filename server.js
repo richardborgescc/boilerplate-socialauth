@@ -18,8 +18,6 @@ app.use(bodyParser.urlencoded({ extended: true }));
 
 app.set('view engine', 'pug')
 
-
-process.env.DATABASE = "mongodb+srv://admin:rbcc@cluster0-go8yi.mongodb.net/test?retryWrites=true";
 mongo.connect(process.env.DATABASE, {useNewUrlParser: true}, (err, client) => {
     let db = client.db('myproject');
     if(err) {
